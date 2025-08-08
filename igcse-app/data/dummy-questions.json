@@ -1,0 +1,26 @@
+[
+  {
+    "id": "demo-1",
+    "subject_id": null,
+    "chapter_id": null,
+    "paper_id": null,
+    "display_number": "1",
+    "title": "Linear Equations",
+    "text": "Solve 2x + 3 = 11",
+    "parts": [],
+    "mark_scheme": "x = 4: award 2 marks for correct solution. 1 mark for correct rearrangement.",
+    "total_marks": 2
+  },
+  {
+    "id": "demo-2",
+    "display_number": "2",
+    "title": "Vectors",
+    "text": "Given A = (2,1) and B = (−1,4), find A + B and |A|.",
+    "parts": [
+      { "label": "(a)", "text": "Find A + B", "total_marks": 2 },
+      { "label": "(b)", "text": "Find |A|", "total_marks": 2 }
+    ],
+    "mark_scheme": "A+B = (1,5) (2 marks). |A| = sqrt(5) (2 marks).",
+    "total_marks": 4
+  }
+]

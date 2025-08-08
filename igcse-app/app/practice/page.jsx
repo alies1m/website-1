@@ -7,6 +7,8 @@ import { createBrowserClient } from "@/lib/supabase/client";
 import { GradeBadge } from "@/components/ui/grade-badge";
 import { TeacherAd } from "@/components/teacher-ad";
 
+const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+
 export default function PracticePage() {
   return (
     <Suspense>
@@ -29,11 +31,19 @@ function PracticeInner() {
   const [authRequired, setAuthRequired] = useState(false);
 
   async function loadQuestion() {
-    const { data, error } = await supabase.rpc("get_random_question", { p_subject_id: subjectId, p_chapter_ids: chapters });
-    if (error) console.error(error);
-    setQuestion(data);
-    setAnswer("");
-    setResult(null);
+    try {
+      if (DEMO_MODE) throw new Error("demo");
+      const { data, error } = await supabase.rpc("get_random_question", { p_subject_id: subjectId, p_chapter_ids: chapters });
+      if (error) throw error;
+      setQuestion(data);
+    } catch (e) {
+      const res = await fetch("/api/dummy-question");
+      const data = await res.json();
+      setQuestion(data);
+    } finally {
+      setAnswer("");
+      setResult(null);
+    }
   }
 
   useEffect(() => { loadQuestion(); }, [subjectId, params.toString()]);
@@ -50,7 +60,7 @@ function PracticeInner() {
         body: JSON.stringify({
           question: question.text,
           parts: question.parts,
-          markScheme: { text: question.mark_scheme, total_marks: question.total_marks },
+          markScheme: { text: question.mark_scheme || question.markScheme || "", total_marks: question.total_marks },
           studentAnswer: answer,
           meta: { subject_id: question.subject_id, question_id: question.id },
         }),
@@ -76,10 +86,8 @@ function PracticeInner() {
       ) : (
         <div className="space-y-4">
           <div className="border rounded-lg p-4 bg-card">
-            <div className="text-sm text-muted-foreground mb-1">
-              {question.paper_label ? `${question.paper_label} • ` : ""}Marks: {question.total_marks}
-            </div>
-            <h2 className="font-medium text-lg mb-2">{question.display_number ? `${question.display_number}. ` : ""}{question.title || "Question"}</h2>
+            <div className="text-sm text-muted-foreground mb-1">Marks: {question.total_marks}</div>
+            <h2 className="font-medium text-lg mb-2">{question.display_number || "Question"} {question.title ? `• ${question.title}` : ""}</h2>
             <p className="whitespace-pre-wrap leading-relaxed">{question.text}</p>
             {question.parts?.length ? (
               <ul className="list-disc pl-6 mt-3 space-y-1">
@@ -123,10 +131,6 @@ function PracticeInner() {
                     </div>
                   ))}
                 </div>
-              ) : null}
-
-              {result?.teacher ? (
-                <TeacherAd teacher={result.teacher} />
               ) : null}
             </div>
           ) : null}
