@@ -1,11 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { createBrowserClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 
 export default function LoginPage() {
-  const params = useSearchParams();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const supabase = createBrowserClient();
@@ -15,12 +14,12 @@ export default function LoginPage() {
   }, []);
 
   async function signInWithGoogle() {
-    await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/` } });
+    await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/api/auth/callback` } });
   }
 
   async function signInWithEmail(e) {
     e.preventDefault();
-    const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: `${window.location.origin}/` } });
+    const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: `${window.location.origin}/api/auth/callback` } });
     if (error) alert(error.message); else alert("Check your email for a magic link!");
   }
 
