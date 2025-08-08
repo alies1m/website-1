@@ -6,6 +6,7 @@ import { createServerClient } from "@/lib/supabase/server";
 export async function POST(req) {
   try {
     const supabase = createServerClient();
+    const authDisabled = process.env.AUTH_DISABLED === "true";
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -16,12 +17,14 @@ export async function POST(req) {
     const cookieStore = cookies();
     const freeUsed = cookieStore.get("guest_attempts")?.value || "0";
 
-    if (!user) {
-      const attempts = parseInt(freeUsed, 10) || 0;
-      if (attempts >= 1) {
-        return NextResponse.json({ error: "Sign in required after the first attempt." }, { status: 401 });
+    if (!authDisabled) {
+      if (!user) {
+        const attempts = parseInt(freeUsed, 10) || 0;
+        if (attempts >= 1) {
+          return NextResponse.json({ error: "Sign in required after the first attempt." }, { status: 401 });
+        }
+        cookieStore.set("guest_attempts", String(attempts + 1), { httpOnly: false, path: "/" });
       }
-      cookieStore.set("guest_attempts", String(attempts + 1), { httpOnly: false, path: "/" });
     }
 
     const graded = await gradeAnswer({ question, parts, markScheme, studentAnswer });
